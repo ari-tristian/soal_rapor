@@ -47,6 +47,21 @@
         <!-- TAB CONTENT 1: FORM VALIDASI -->
         <div id="tab-content-validasi" class="space-y-6">
             
+            <!-- ALERT CONNECTION BANNER (TAMPIL JIKA GAGAL KONEKSI) -->
+            <div id="gas-error-banner" class="hidden bg-rose-950/80 border border-rose-500/50 p-4 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-rose-200">
+                <div class="flex items-center space-x-3">
+                    <i class="fa-solid fa-triangle-exclamation text-rose-400 text-xl flex-shrink-0"></i>
+                    <div>
+                        <h4 class="text-sm font-bold text-white">Gagal Terhubung dengan Google Sheets</h4>
+                        <p id="gas-error-detail" class="text-xs text-rose-300 mt-0.5">Memakai data simulasi/lokal. Pastikan Web App GAS di-deploy sebagai 'Anyone'.</p>
+                    </div>
+                </div>
+                <button onclick="fetchDataFromGAS()" class="px-3.5 py-1.5 bg-rose-600 hover:bg-rose-500 text-white font-semibold text-xs rounded-lg transition flex items-center space-x-1.5 flex-shrink-0">
+                    <i class="fa-solid fa-rotate-right"></i>
+                    <span>Coba Lagi</span>
+                </button>
+            </div>
+
             <!-- STATS SUMMARY CARDS -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="bg-slate-850 bg-slate-800/80 backdrop-blur p-5 rounded-2xl border border-slate-700/60 shadow-lg hover:border-emerald-500/40 transition flex items-center justify-between">
@@ -379,7 +394,12 @@
 
         // FETCH DATA DARI GOOGLE APPS SCRIPT
         async function fetchDataFromGAS() {
-            if (!state.gasUrl) {
+            const errorBanner = document.getElementById('gas-error-banner');
+            const errorDetail = document.getElementById('gas-error-detail');
+
+            if (!state.gasUrl || state.gasUrl.includes("YOUR_SCRIPT_ID")) {
+                if (errorBanner) errorBanner.classList.remove('hidden');
+                if (errorDetail) errorDetail.textContent = "URL Web App GAS belum dikonfigurasi di file index.html (masih placeholder).";
                 loadMockData();
                 return;
             }
@@ -396,13 +416,16 @@
                     renderSelectLembaga();
                     renderSummaryCards();
                     renderRekapTable();
+                    if (errorBanner) errorBanner.classList.add('hidden');
                     showNotification("Berhasil terhubung dengan Google Sheets!", "success");
                 } else {
                     throw new Error(result.message || "Gagal mengambil data dari Google Sheets.");
                 }
             } catch (err) {
                 console.warn("GAS Connection Error:", err);
-                showNotification(`Gagal koneksi GAS: ${err.message}. Menggunakan data Lokal/Mock.`, "error");
+                if (errorBanner) errorBanner.classList.remove('hidden');
+                if (errorDetail) errorDetail.textContent = err.message || "Pastikan Web App Apps Script di-deploy dengan opsi 'Anyone' (Siapa Saja).";
+                showNotification(`Gagal koneksi GAS: ${err.message}`, "error");
                 loadMockData();
             } finally {
                 showLoading(false);
