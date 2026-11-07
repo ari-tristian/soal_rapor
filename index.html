@@ -407,24 +407,29 @@
 
             showLoading(true);
             try {
-                const response = await fetch(`${state.gasUrl}?action=getLembaga`, {
+                // Menggunakan fetch dengan parameter timestamp untuk menghindari cache browser
+                const fetchUrl = `${state.gasUrl}?action=getLembaga&t=${new Date().getTime()}`;
+                
+                const response = await fetch(fetchUrl, {
                     method: 'GET',
-                    redirect: 'follow'
+                    headers: {
+                        'Accept': 'application/json'
+                    }
                 });
                 
-                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                if (!response.ok) throw new Error(`HTTP Error Status: ${response.status}`);
                 
                 const result = await parseJsonResponse(response);
                 
-                if (result.status === "success" && Array.isArray(result.data)) {
+                if (result && result.status === "success" && Array.isArray(result.data)) {
                     state.dataLembaga = result.data;
                     renderSelectLembaga();
                     renderSummaryCards();
                     renderRekapTable();
                     if (errorBanner) errorBanner.classList.add('hidden');
-                    showNotification("Berhasil terhubung dengan Google Sheets!", "success");
+                    showNotification("Berhasil mengambil data terbaru dari Google Sheets!", "success");
                 } else {
-                    throw new Error(result.message || "Gagal mengambil data dari Google Sheets.");
+                    throw new Error(result.message || "Format data tidak sesuai dari Apps Script.");
                 }
             } catch (err) {
                 console.warn("GAS Connection Error:", err);
