@@ -1,0 +1,808 @@
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Validasi Pesanan Soal & Rapor FKPQ Cikampek</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Font (Inter) -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 min-h-screen text-slate-100 pb-12">
+
+    <!-- HEADER & NAVBAR -->
+    <header class="bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-white shadow-xl border-b border-emerald-500/20 sticky top-0 z-40 backdrop-blur-md">
+        <div class="max-w-6xl mx-auto px-4 py-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-3 text-center md:text-left">
+                <div class="w-12 h-12 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-center text-emerald-400 text-2xl shadow-inner">
+                    <i class="fa-solid fa-book-quran"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl md:text-2xl font-bold tracking-tight text-white drop-shadow-sm">FKPQ KECAMATAN CIKAMPEK</h1>
+                    <p class="text-xs text-emerald-400/90 font-medium">Validasi Pesanan Soal & Buku Rapor Lembaga (TKQ, PAUDQ, TPQ)</p>
+                </div>
+            </div>
+
+            <!-- TAB NAVIGATION -->
+            <nav class="flex items-center bg-slate-950/80 p-1.5 rounded-xl border border-emerald-500/20 backdrop-blur">
+                <button id="nav-tab-validasi" onclick="switchTab('validasi')" class="px-4 py-2 font-semibold text-sm text-white bg-emerald-600 rounded-lg transition flex items-center space-x-2 shadow-lg shadow-emerald-900/30">
+                    <i class="fa-solid fa-file-circle-check text-emerald-200"></i>
+                    <span>Form Validasi</span>
+                </button>
+                <button id="nav-tab-rekap" onclick="switchTab('rekap')" class="px-4 py-2 font-medium text-sm text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-lg transition flex items-center space-x-2">
+                    <i class="fa-solid fa-table-list"></i>
+                    <span>Rekap Data</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- MAIN CONTAINER -->
+    <main class="max-w-6xl mx-auto px-4 mt-6">
+
+        <!-- TAB CONTENT 1: FORM VALIDASI -->
+        <div id="tab-content-validasi" class="space-y-6">
+            
+            <!-- STATS SUMMARY CARDS -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-slate-850 bg-slate-800/80 backdrop-blur p-5 rounded-2xl border border-slate-700/60 shadow-lg hover:border-emerald-500/40 transition flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Total Lembaga</p>
+                        <h3 id="stat-total-lembaga" class="text-2xl font-bold text-slate-100 mt-1">0</h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5">TKQ, PAUDQ, & TPQ Cikampek</p>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-building-columns"></i>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/80 backdrop-blur p-5 rounded-2xl border border-slate-700/60 shadow-lg hover:border-emerald-500/40 transition flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sudah Validasi</p>
+                        <h3 id="stat-sudah-validasi" class="text-2xl font-bold text-emerald-400 mt-1">0</h3>
+                        <p class="text-[11px] text-emerald-400/80 font-medium mt-0.5">Pesanan Terkonfirmasi</p>
+                    </div>
+                    <div class="w-12 h-12 bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-circle-check"></i>
+                    </div>
+                </div>
+
+                <div class="bg-slate-800/80 backdrop-blur p-5 rounded-2xl border border-slate-700/60 shadow-lg hover:border-amber-500/40 transition flex items-center justify-between">
+                    <div>
+                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Belum Validasi</p>
+                        <h3 id="stat-belum-validasi" class="text-2xl font-bold text-amber-400 mt-1">0</h3>
+                        <p class="text-[11px] text-amber-400/80 font-medium mt-0.5">Menunggu Konfirmasi</p>
+                    </div>
+                    <div class="w-12 h-12 bg-amber-500/10 text-amber-400 border border-amber-500/20 rounded-xl flex items-center justify-center text-xl">
+                        <i class="fa-solid fa-clock"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SEARCH & SELECTION CARD -->
+            <div class="bg-slate-800/90 p-6 rounded-2xl border border-slate-700/70 shadow-lg">
+                <div class="flex flex-col md:flex-row items-center justify-between gap-4 mb-4 pb-4 border-b border-slate-700/60">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-100 flex items-center gap-2">
+                            <i class="fa-solid fa-magnifying-glass text-emerald-400"></i>
+                            <span>Pilih Lembaga Anda</span>
+                        </h2>
+                        <p class="text-xs text-slate-400 mt-0.5">Cari berdasarkan Nama Lembaga, NSPQ, atau Jenjang Pendidikan</p>
+                    </div>
+
+                    <!-- JENJANG FILTER TABS -->
+                    <div class="flex bg-slate-900 p-1 rounded-xl border border-slate-700 text-xs font-semibold">
+                        <button id="tab-all" onclick="filterByJenjang('ALL')" class="px-3 py-1.5 bg-emerald-600 text-white rounded-lg shadow-sm">Semua</button>
+                        <button id="tab-tkq" onclick="filterByJenjang('TKQ')" class="px-3 py-1.5 text-slate-300 hover:text-emerald-400 rounded-lg">TKQ</button>
+                        <button id="tab-paudq" onclick="filterByJenjang('PAUDQ')" class="px-3 py-1.5 text-slate-300 hover:text-emerald-400 rounded-lg">PAUDQ</button>
+                        <button id="tab-tpq" onclick="filterByJenjang('TPQ')" class="px-3 py-1.5 text-slate-300 hover:text-emerald-400 rounded-lg">TPQ</button>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="md:col-span-1">
+                        <input type="text" id="search-lembaga" oninput="handleSearchInput()" placeholder="Ketik Nama Lembaga / NSPQ..." class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
+                    </div>
+                    <div class="md:col-span-2">
+                        <select id="select-lembaga" onchange="loadLembagaDetail()" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm font-medium text-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition">
+                            <option value="" class="bg-slate-900 text-slate-400">-- Pilih Nama Lembaga --</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DETAIL LEMBAGA & FORM VALIDASI (HIDDEN BY DEFAULT) -->
+            <div id="detail-lembaga-card" class="hidden bg-slate-800/90 rounded-2xl border border-slate-700/80 shadow-xl overflow-hidden transition-all duration-300">
+                <!-- CARD HEADER -->
+                <div class="bg-gradient-to-r from-slate-950 via-slate-900 to-emerald-950 border-b border-slate-700 text-white p-6 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                    <div>
+                        <div class="flex items-center space-x-2">
+                            <span id="det-jenjang" class="px-2.5 py-0.5 bg-emerald-600 text-white font-bold text-xs rounded-full uppercase shadow">TPQ</span>
+                            <span class="text-xs text-slate-400">NSPQ: <span id="det-nspq" class="font-mono text-emerald-300"></span></span>
+                        </div>
+                        <h3 id="det-nama" class="text-xl font-bold mt-1 text-white"></h3>
+                        <p class="text-xs text-slate-400 mt-1">Kepala Lembaga: <span id="det-kepala" class="text-slate-200 font-medium"></span></p>
+                    </div>
+                    <div id="det-status-badge">
+                        <!-- Dynamic Status Badge -->
+                    </div>
+                </div>
+
+                <!-- CONTENT BODY -->
+                <div class="p-6 space-y-6">
+                    <!-- SECTION: DATA REKAP PESANAN -->
+                    <div>
+                        <h4 class="text-sm font-bold text-slate-200 mb-3 flex items-center space-x-2">
+                            <i class="fa-solid fa-list-check text-emerald-400"></i>
+                            <span>Data Pesanan Hasil Pendataan Operator</span>
+                        </h4>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <!-- PESANAN SOAL -->
+                            <div class="p-4 bg-slate-900/80 border border-emerald-500/20 rounded-xl space-y-3">
+                                <h5 class="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center justify-between">
+                                    <span>Rincian Pesanan Soal</span>
+                                    <i class="fa-solid fa-file-pen text-emerald-500"></i>
+                                </h5>
+                                <div id="det-soal-list" class="space-y-2">
+                                    <!-- Dynamic Items -->
+                                </div>
+                            </div>
+
+                            <!-- PESANAN RAPOR -->
+                            <div class="p-4 bg-slate-900/80 border border-blue-500/20 rounded-xl space-y-3">
+                                <h5 class="text-xs font-bold uppercase tracking-wider text-blue-400 flex items-center justify-between">
+                                    <span>Rincian Buku Rapor</span>
+                                    <i class="fa-solid fa-book-open text-blue-500"></i>
+                                </h5>
+                                <div id="det-rapor-list" class="space-y-2">
+                                    <!-- Dynamic Items -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SECTION: FORM KONFIRMASI / VALIDASI -->
+                    <div class="border-t border-slate-700/60 pt-6">
+                        <h4 class="text-sm font-bold text-slate-200 mb-4 flex items-center space-x-2">
+                            <i class="fa-solid fa-user-check text-emerald-400"></i>
+                            <span>Form Konfirmasi & Validasi Lembaga</span>
+                        </h4>
+
+                        <!-- PILIHAN STATUS VALIDASI -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
+                            <label class="relative flex items-center p-4 bg-slate-900/60 border-2 border-slate-700 rounded-xl cursor-pointer hover:bg-slate-900 hover:border-emerald-500/50 transition has-[:checked]:border-emerald-500 has-[:checked]:bg-emerald-950/30">
+                                <input type="radio" id="opt-sesuai" name="val_option" value="SESUAI" onclick="setValidationType('SESUAI')" checked class="w-4 h-4 text-emerald-500 focus:ring-emerald-500 bg-slate-800 border-slate-600">
+                                <div class="ml-3">
+                                    <span class="block text-sm font-bold text-slate-100">✅ Data Sudah Sesuai</span>
+                                    <span class="block text-xs text-slate-400">Jumlah pesanan soal & rapor sudah tepat.</span>
+                                </div>
+                            </label>
+
+                            <label class="relative flex items-center p-4 bg-slate-900/60 border-2 border-slate-700 rounded-xl cursor-pointer hover:bg-slate-900 hover:border-amber-500/50 transition has-[:checked]:border-amber-500 has-[:checked]:bg-amber-950/30">
+                                <input type="radio" id="opt-revisi" name="val_option" value="REVISI" onclick="setValidationType('REVISI')" class="w-4 h-4 text-amber-500 focus:ring-amber-500 bg-slate-800 border-slate-600">
+                                <div class="ml-3">
+                                    <span class="block text-sm font-bold text-slate-100">⚠️ Ada Perubahan / Revisi Data</span>
+                                    <span class="block text-xs text-slate-400">Ingin mengubah jumlah pesanan naskah/rapor.</span>
+                                </div>
+                            </label>
+                        </div>
+
+                        <!-- CONTAINER INPUT REVISI (TAMPIL JIKA REVISI DIPILIH) -->
+                        <div id="form-revisi-container" class="hidden p-5 bg-slate-900/90 border border-amber-500/40 rounded-xl mb-5 space-y-4 shadow-inner">
+                            <div class="flex items-center space-x-2 text-amber-400">
+                                <i class="fa-solid fa-pen-to-square"></i>
+                                <h5 class="text-xs font-bold uppercase tracking-wider">Masukkan Jumlah Revisi Terbaru</h5>
+                            </div>
+                            <div id="revisi-inputs-list" class="space-y-3">
+                                <!-- Dynamic Inputs -->
+                            </div>
+                        </div>
+
+                        <!-- INPUT DATA VALIDATOR -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">Nama Penanggung Jawab / Validator <span class="text-rose-400">*</span></label>
+                                <input type="text" id="input-nama-petugas" placeholder="Contoh: Ust. Ahmad / Kepala TPQ" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-300 mb-1">No. WhatsApp Aktif <span class="text-rose-400">*</span></label>
+                                <input type="text" id="input-wa-petugas" placeholder="08xxxxxxxxxx" class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none">
+                            </div>
+                        </div>
+
+                        <div class="mb-5">
+                            <label class="block text-xs font-semibold text-slate-300 mb-1">Catatan Tambahan (Opsional)</label>
+                            <textarea id="input-catatan" rows="2" placeholder="Tuliskan catatan khusus jika ada..." class="w-full px-4 py-2.5 bg-slate-900 border border-slate-700 rounded-xl text-sm text-slate-100 placeholder-slate-500 focus:ring-2 focus:ring-emerald-500 focus:border-transparent outline-none"></textarea>
+                        </div>
+
+                        <!-- SUBMIT BUTTON -->
+                        <button onclick="submitValidasi()" class="w-full py-3.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold rounded-xl shadow-lg shadow-emerald-950/50 hover:shadow-emerald-900/50 transition flex items-center justify-center space-x-2 text-sm">
+                            <i class="fa-solid fa-paper-plane"></i>
+                            <span>Kirim Konfirmasi Validasi</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB CONTENT 2: REKAP DATA (TABEL) -->
+        <div id="tab-content-rekap" class="hidden bg-slate-800/90 p-6 rounded-2xl border border-slate-700/80 shadow-xl space-y-4">
+            <div class="flex justify-between items-center pb-3 border-b border-slate-700/60">
+                <div>
+                    <h3 class="text-lg font-bold text-slate-100">Rekapitulasi Validasi Pesanan</h3>
+                    <p class="text-xs text-slate-400">Daftar seluruh pesanan soal dan rapor lembaga se-Kecamatan Cikampek</p>
+                </div>
+            </div>
+
+            <div class="overflow-x-auto rounded-xl border border-slate-700/80">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-gradient-to-r from-slate-900 via-emerald-950 to-slate-900 text-emerald-300 text-xs font-semibold uppercase tracking-wider border-b border-slate-700">
+                            <th class="px-4 py-3.5">No</th>
+                            <th class="px-4 py-3.5">Lembaga & NSPQ</th>
+                            <th class="px-4 py-3.5">Jenjang</th>
+                            <th class="px-4 py-3.5">Pesanan Soal</th>
+                            <th class="px-4 py-3.5">Pesanan Rapor</th>
+                            <th class="px-4 py-3.5">Status</th>
+                            <th class="px-4 py-3.5">Validator</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rekap-table-body" class="divide-y divide-slate-700/60 text-sm">
+                        <!-- Dynamic Rows -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- SPINNER SPINNER LOADING OVERLAY -->
+    <div id="loading-spinner" class="hidden fixed inset-0 bg-slate-950/75 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div class="bg-slate-900 p-5 rounded-2xl shadow-2xl flex items-center space-x-3 border border-emerald-500/30">
+            <div class="w-6 h-6 border-4 border-emerald-500 border-t-transparent rounded-full animate-spin"></div>
+            <span class="text-xs font-bold text-slate-200">Memproses Data...</span>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast-notification" class="hidden fixed bottom-5 right-5 z-50 bg-slate-900 text-white px-4 py-3 rounded-xl shadow-2xl border border-slate-700 flex items-center space-x-3">
+        <i class="fa-solid fa-circle-info text-emerald-400"></i>
+        <span id="toast-message" class="text-xs font-medium"></span>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // ==========================================================
+        // URL WEB APP GOOGLE APPS SCRIPT DEFAULT
+        // Tempelkan URL Web App GAS Anda di bawah ini:
+        // ==========================================================
+        const DEFAULT_GAS_URL = "https://script.google.com/macros/s/AKfycbx1AiJmDcAgDYUN-9vnV5oAhp4FQbbaKgmSu0PUGqkGj1cOZUvULsxdg98DQPhGxWjJFQ/exec";
+
+        // MOCK DATA SPREADSHEET (Fallback jika URL GAS belum diisi / offline)
+        const MOCK_DATA = [
+            {
+                id: "LPQ-001",
+                jenjang: "TPQ",
+                nama: "TPQ AL-BAROKAH CIKAMPEK KOTA",
+                nspq: "411232150012",
+                kepala: "Ust. Abdullah S.Pd.I",
+                soal: { "TPQ 1": 25, "TPQ 2": 20 },
+                rapor: { "Buku Rapor TPQ (Standar FKPQ)": 30 },
+                status: "BELUM",
+                catatan: "",
+                validator: "",
+                wa: "",
+                lastUpdate: "06 Nov 2026"
+            },
+            {
+                id: "LPQ-002",
+                jenjang: "TKQ",
+                nama: "TKQ AN-NUR CIKAMPEK BARAT",
+                nspq: "411232150045",
+                kepala: "Ustdh. Siti Aminah",
+                soal: { "TKQ A": 40, "TKQ B": 35 },
+                rapor: { "Buku Rapor TKQ / PaudQ": 40 },
+                status: "VALID",
+                catatan: "Sudah sesuai dengan jumlah santri aktif.",
+                validator: "Ustdh. Siti Aminah",
+                wa: "081298765432",
+                lastUpdate: "07 Nov 2026, 09:15"
+            },
+            {
+                id: "LPQ-003",
+                jenjang: "PAUDQ",
+                nama: "PAUDQ AL-FALAH DAWUAN",
+                nspq: "411232150089",
+                kepala: "Ust. Ahmad Dahlan",
+                soal: { "PAUDQ A": 15, "PAUDQ B": 20 },
+                rapor: { "Buku Rapor TKQ / PaudQ": 35 },
+                status: "BELUM",
+                catatan: "",
+                validator: "",
+                wa: "",
+                lastUpdate: "05 Nov 2026"
+            },
+            {
+                id: "LPQ-004",
+                jenjang: "TPQ",
+                nama: "TPQ NURUL HUDA KAMPOUNG BARU",
+                nspq: "411232150102",
+                kepala: "Ust. Ridwan",
+                soal: { "TPQ 1": 50, "TPQ 2": 45 },
+                rapor: { "Buku Rapor TPQ (Standar FKPQ)": 60 },
+                status: "BELUM",
+                catatan: "",
+                validator: "",
+                wa: "",
+                lastUpdate: "06 Nov 2026"
+            }
+        ];
+
+        let state = {
+            dataLembaga: [],
+            selectedId: null,
+            filterJenjang: "ALL",
+            searchQuery: "",
+            gasUrl: localStorage.getItem("fkpq_gas_url") || DEFAULT_GAS_URL,
+            validationType: "SESUAI", // 'SESUAI' atau 'REVISI'
+            revisiSoal: {},
+            revisiRapor: {}
+        };
+
+        // INIT APPLICATION
+        document.addEventListener("DOMContentLoaded", function() {
+            if (state.gasUrl && state.gasUrl !== "" && !state.gasUrl.includes("YOUR_SCRIPT_ID")) {
+                fetchDataFromGAS();
+            } else {
+                // Jika URL belum diset ke URL asli, gunakan data mock/demo
+                loadMockData();
+            }
+        });
+
+        // SAFELY PARSE JSON TO PREVENT Unexpected Token '<' SYNTAX ERRORS
+        async function parseJsonResponse(response) {
+            const text = await response.text();
+            try {
+                return JSON.parse(text);
+            } catch (err) {
+                if (text.trim().startsWith('<')) {
+                    throw new Error("Menerima respon HTML dari Google Apps Script. Pastikan Web App Anda di-deploy dengan akses 'Anyone' (Siapa Saja) dan URL Web App benar.");
+                } else {
+                    throw new Error("Gagal membaca data JSON: " + err.message);
+                }
+            }
+        }
+
+        // FETCH DATA DARI GOOGLE APPS SCRIPT
+        async function fetchDataFromGAS() {
+            if (!state.gasUrl) {
+                loadMockData();
+                return;
+            }
+
+            showLoading(true);
+            try {
+                const response = await fetch(`${state.gasUrl}?action=getLembaga`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                
+                const result = await parseJsonResponse(response);
+                
+                if (result.status === "success" && Array.isArray(result.data)) {
+                    state.dataLembaga = result.data;
+                    renderSelectLembaga();
+                    renderSummaryCards();
+                    renderRekapTable();
+                    showNotification("Berhasil terhubung dengan Google Sheets!", "success");
+                } else {
+                    throw new Error(result.message || "Gagal mengambil data dari Google Sheets.");
+                }
+            } catch (err) {
+                console.warn("GAS Connection Error:", err);
+                showNotification(`Gagal koneksi GAS: ${err.message}. Menggunakan data Lokal/Mock.`, "error");
+                loadMockData();
+            } finally {
+                showLoading(false);
+            }
+        }
+
+        function loadMockData() {
+            state.dataLembaga = [...MOCK_DATA];
+            renderSelectLembaga();
+            renderSummaryCards();
+            renderRekapTable();
+        }
+
+        function filterByJenjang(jenjang) {
+            state.filterJenjang = jenjang;
+            
+            // Highlight Tab Active Dark Theme
+            ["ALL", "TKQ", "PAUDQ", "TPQ"].forEach(j => {
+                const btn = document.getElementById(`tab-${j.toLowerCase()}`);
+                if (btn) {
+                    if (j === jenjang) {
+                        btn.className = "px-3 py-1.5 bg-emerald-600 text-white rounded-lg shadow-sm transition";
+                    } else {
+                        btn.className = "px-3 py-1.5 text-slate-300 hover:text-emerald-400 rounded-lg transition";
+                    }
+                }
+            });
+
+            renderSelectLembaga();
+        }
+
+        function renderSelectLembaga() {
+            const select = document.getElementById('select-lembaga');
+            if (!select) return;
+
+            const searchInput = document.getElementById('search-lembaga');
+            const searchVal = searchInput ? searchInput.value.toLowerCase() : "";
+            select.innerHTML = '<option value="">-- Pilih Nama Lembaga / TPQ / TKQ / PAUDQ --</option>';
+
+            const filtered = state.dataLembaga.filter(item => {
+                const matchJenjang = state.filterJenjang === "ALL" || item.jenjang === state.filterJenjang;
+                const matchSearch = item.nama.toLowerCase().includes(searchVal) || 
+                                    item.nspq.toLowerCase().includes(searchVal) ||
+                                    item.id.toLowerCase().includes(searchVal);
+                return matchJenjang && matchSearch;
+            });
+
+            filtered.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id;
+                const statusBadge = item.status === 'VALID' ? '✅' : '⏳';
+                opt.textContent = `${statusBadge} [${item.jenjang}] ${item.nama} (${item.nspq})`;
+                select.appendChild(opt);
+            });
+        }
+
+        function handleSearchInput() {
+            renderSelectLembaga();
+        }
+
+        function loadLembagaDetail() {
+            const select = document.getElementById('select-lembaga');
+            const id = select.value;
+            state.selectedId = id;
+
+            const detailCard = document.getElementById('detail-lembaga-card');
+
+            if (!id) {
+                detailCard.classList.add('hidden');
+                return;
+            }
+
+            const item = state.dataLembaga.find(l => l.id === id);
+            if (!item) return;
+
+            // Populate header detail
+            document.getElementById('det-jenjang').textContent = item.jenjang;
+            document.getElementById('det-nspq').textContent = item.nspq;
+            document.getElementById('det-nama').textContent = item.nama;
+            document.getElementById('det-kepala').textContent = item.kepala || '-';
+
+            // Status Badge Dark Theme
+            const badgeEl = document.getElementById('det-status-badge');
+            if (item.status && item.status.startsWith("VALID")) {
+                badgeEl.className = "px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-full border border-emerald-500/40 flex items-center space-x-1 shadow-sm";
+                badgeEl.innerHTML = '<i class="fa-solid fa-circle-check"></i><span>Telah Divalidasi</span>';
+            } else {
+                badgeEl.className = "px-3 py-1 bg-amber-500/20 text-amber-400 text-xs font-bold rounded-full border border-amber-500/40 flex items-center space-x-1 shadow-sm";
+                badgeEl.innerHTML = '<i class="fa-solid fa-clock"></i><span>Belum Divalidasi</span>';
+            }
+
+            // Render Rincian Pesanan Soal
+            const soalContainer = document.getElementById('det-soal-list');
+            soalContainer.innerHTML = '';
+            state.revisiSoal = {};
+            if (item.soal) {
+                for (const [kategori, jumlah] of Object.entries(item.soal)) {
+                    state.revisiSoal[kategori] = jumlah;
+                    soalContainer.innerHTML += `
+                        <div class="p-3 bg-slate-900 border border-slate-700/70 rounded-lg flex justify-between items-center">
+                            <span class="text-xs font-medium text-slate-300">${kategori}</span>
+                            <span class="text-sm font-bold text-emerald-400">${jumlah} naskah</span>
+                        </div>
+                    `;
+                }
+            }
+
+            // Render Rincian Pesanan Rapor
+            const raporContainer = document.getElementById('det-rapor-list');
+            raporContainer.innerHTML = '';
+            state.revisiRapor = {};
+            if (item.rapor) {
+                for (const [kategori, jumlah] of Object.entries(item.rapor)) {
+                    state.revisiRapor[kategori] = jumlah;
+                    raporContainer.innerHTML += `
+                        <div class="p-3 bg-slate-900 border border-slate-700/70 rounded-lg flex justify-between items-center">
+                            <span class="text-xs font-medium text-slate-300">${kategori}</span>
+                            <span class="text-sm font-bold text-blue-400">${jumlah} eksemplar</span>
+                        </div>
+                    `;
+                }
+            }
+
+            // Prefill form
+            document.getElementById('input-nama-petugas').value = item.validator || '';
+            document.getElementById('input-wa-petugas').value = item.wa || '';
+            document.getElementById('input-catatan').value = item.catatan || '';
+
+            // Default Option Sesuai
+            setValidationType('SESUAI');
+
+            detailCard.classList.remove('hidden');
+            detailCard.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function setValidationType(type) {
+            state.validationType = type;
+            const formRevisiContainer = document.getElementById('form-revisi-container');
+            const radioSesuai = document.getElementById('opt-sesuai');
+            const radioRevisi = document.getElementById('opt-revisi');
+
+            if (type === 'SESUAI') {
+                radioSesuai.checked = true;
+                formRevisiContainer.classList.add('hidden');
+            } else {
+                radioRevisi.checked = true;
+                formRevisiContainer.classList.remove('hidden');
+                renderRevisiInputs();
+            }
+        }
+
+        function updateRevisiVal(type, kategori, val) {
+            const num = parseInt(val, 10) || 0;
+            if (type === 'soal') {
+                state.revisiSoal[kategori] = num;
+            } else if (type === 'rapor') {
+                state.revisiRapor[kategori] = num;
+            }
+        }
+
+        function renderRevisiInputs() {
+            const item = state.dataLembaga.find(l => l.id === state.selectedId);
+            if (!item) return;
+
+            const container = document.getElementById('revisi-inputs-list');
+            container.innerHTML = '';
+
+            // Inputs Soal Dark
+            let html = '<h5 class="text-xs font-bold text-amber-300 mb-2">Perubahan Pesanan Soal:</h5>';
+            for (const [kategori, jumlah] of Object.entries(item.soal || {})) {
+                html += `
+                    <div class="flex items-center justify-between gap-4 p-2.5 bg-slate-950 border border-slate-800 rounded-lg">
+                        <label class="text-xs font-medium text-slate-300">${kategori}</label>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs text-slate-500">Awal: ${jumlah} &rarr;</span>
+                            <input type="number" min="0" value="${state.revisiSoal[kategori] ?? jumlah}" 
+                                onchange="updateRevisiVal('soal', '${kategori}', this.value)"
+                                class="w-20 px-2.5 py-1 bg-slate-900 border border-amber-500/50 text-amber-300 font-bold rounded text-center text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                        </div>
+                    </div>
+                `;
+            }
+
+            // Inputs Rapor Dark
+            html += '<h5 class="text-xs font-bold text-amber-300 mt-3 mb-2">Perubahan Pesanan Rapor:</h5>';
+            for (const [kategori, jumlah] of Object.entries(item.rapor || {})) {
+                html += `
+                    <div class="flex items-center justify-between gap-4 p-2.5 bg-slate-950 border border-slate-800 rounded-lg">
+                        <label class="text-xs font-medium text-slate-300">${kategori}</label>
+                        <div class="flex items-center space-x-2">
+                            <span class="text-xs text-slate-500">Awal: ${jumlah} &rarr;</span>
+                            <input type="number" min="0" value="${state.revisiRapor[kategori] ?? jumlah}" 
+                                onchange="updateRevisiVal('rapor', '${kategori}', this.value)"
+                                class="w-20 px-2.5 py-1 bg-slate-900 border border-amber-500/50 text-amber-300 font-bold rounded text-center text-xs focus:ring-2 focus:ring-amber-500 outline-none">
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderSummaryCards() {
+            const totalEl = document.getElementById('stat-total-lembaga');
+            const validEl = document.getElementById('stat-sudah-validasi');
+            const belumEl = document.getElementById('stat-belum-validasi');
+
+            if (!totalEl || !validEl || !belumEl) return;
+
+            const total = state.dataLembaga.length;
+            const valid = state.dataLembaga.filter(l => l.status && l.status.startsWith("VALID")).length;
+            const belum = total - valid;
+
+            totalEl.textContent = total;
+            validEl.textContent = valid;
+            belumEl.textContent = belum;
+        }
+
+        async function submitValidasi() {
+            if (!state.selectedId) {
+                showNotification("Silakan pilih lembaga terlebih dahulu!", "error");
+                return;
+            }
+
+            const namaPetugas = document.getElementById('input-nama-petugas').value.trim();
+            const waPetugas = document.getElementById('input-wa-petugas').value.trim();
+            const catatan = document.getElementById('input-catatan').value.trim();
+
+            if (!namaPetugas || !waPetugas) {
+                showNotification("Nama penanggung jawab & No. WhatsApp wajib diisi!", "error");
+                return;
+            }
+
+            const isRevisi = state.validationType === 'REVISI';
+            const statusStr = isRevisi ? "VALID (ADA REVISI)" : "VALID (SESUAI)";
+
+            const payload = {
+                id: state.selectedId,
+                status_validasi: statusStr,
+                nama_petugas: namaPetugas,
+                wa_petugas: waPetugas,
+                catatan: catatan,
+                revisi_soal: isRevisi ? state.revisiSoal : null,
+                revisi_rapor: isRevisi ? state.revisiRapor : null
+            };
+
+            showLoading(true);
+
+            // Jika ada URL GAS backend aktif
+            if (state.gasUrl) {
+                try {
+                    const response = await fetch(state.gasUrl, {
+                        method: "POST",
+                        body: JSON.stringify(payload)
+                    });
+                    const resJson = await parseJsonResponse(response);
+
+                    if (resJson.status === "success") {
+                        showNotification("Validasi berhasil dikirim ke Google Sheets!", "success");
+                        await fetchDataFromGAS();
+                    } else {
+                        throw new Error(resJson.message || "Gagal menyimpan validasi.");
+                    }
+                } catch (err) {
+                    showNotification(`Error koneksi: ${err.message}. Memperbarui secara lokal.`, "error");
+                    updateLocalData(payload);
+                } finally {
+                    showLoading(false);
+                }
+            } else {
+                // Update Local Demo Data
+                setTimeout(() => {
+                    updateLocalData(payload);
+                    showLoading(false);
+                    showNotification("Validasi berhasil disimpan secara lokal (Mode Demo)!", "success");
+                }, 500);
+            }
+        }
+
+        function updateLocalData(payload) {
+            const idx = state.dataLembaga.findIndex(l => l.id === payload.id);
+            if (idx !== -1) {
+                state.dataLembaga[idx].status = payload.status_validasi;
+                state.dataLembaga[idx].validator = payload.nama_petugas;
+                state.dataLembaga[idx].wa = payload.wa_petugas;
+                state.dataLembaga[idx].catatan = payload.catatan;
+
+                if (payload.revisi_soal) {
+                    state.dataLembaga[idx].soal = { ...payload.revisi_soal };
+                }
+                if (payload.revisi_rapor) {
+                    state.dataLembaga[idx].rapor = { ...payload.revisi_rapor };
+                }
+
+                renderSelectLembaga();
+                renderSummaryCards();
+                renderRekapTable();
+                loadLembagaDetail();
+            }
+        }
+
+        // RENDER REKAP TABEL DARK
+        function renderRekapTable() {
+            const tbody = document.getElementById('rekap-table-body');
+            if (!tbody) return;
+
+            tbody.innerHTML = '';
+
+            state.dataLembaga.forEach((l, idx) => {
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-800/50 transition border-b border-slate-700/50";
+
+                let soalText = [];
+                for (const [k, v] of Object.entries(l.soal)) {
+                    soalText.push(`${k}: <b class="text-emerald-400">${v}</b>`);
+                }
+
+                let raporText = [];
+                for (const [k, v] of Object.entries(l.rapor)) {
+                    raporText.push(`${k}: <b class="text-blue-400">${v}</b>`);
+                }
+
+                const isStatusValid = l.status.startsWith("VALID");
+                const badgeClass = isStatusValid
+                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
+                    : 'bg-amber-500/20 text-amber-400 border-amber-500/40';
+                const statusLabel = isStatusValid ? 'VALID' : 'BELUM';
+
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-mono text-xs text-slate-400">${idx + 1}</td>
+                    <td class="px-4 py-3 font-semibold text-slate-100 text-xs">
+                        ${l.nama}
+                        <div class="text-[10px] text-slate-400 font-normal">NSPQ: ${l.nspq}</div>
+                    </td>
+                    <td class="px-4 py-3 text-xs"><span class="px-2 py-0.5 bg-slate-900 text-emerald-400 border border-slate-700 rounded font-bold">${l.jenjang}</span></td>
+                    <td class="px-4 py-3 text-xs text-slate-300">${soalText.join(' | ')}</td>
+                    <td class="px-4 py-3 text-xs text-slate-300">${raporText.join(' | ')}</td>
+                    <td class="px-4 py-3 text-xs">
+                        <span class="px-2.5 py-1 text-[11px] font-bold rounded-full border ${badgeClass}">
+                            ${statusLabel}
+                        </span>
+                    </td>
+                    <td class="px-4 py-3 text-xs text-slate-400">${l.validator ? l.validator : '-'}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function switchTab(tabName) {
+            const tabValidasi = document.getElementById('tab-content-validasi');
+            const tabRekap = document.getElementById('tab-content-rekap');
+
+            const btnValidasi = document.getElementById('nav-tab-validasi');
+            const btnRekap = document.getElementById('nav-tab-rekap');
+
+            // Hide all
+            [tabValidasi, tabRekap].forEach(t => t?.classList.add('hidden'));
+            
+            // Reset nav styles for Dark Mode
+            const inactiveClass = "px-4 py-2 font-medium text-sm text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-lg transition flex items-center space-x-2";
+            const activeClass = "px-4 py-2 font-semibold text-sm text-white bg-emerald-600 rounded-lg transition flex items-center space-x-2 shadow-lg shadow-emerald-950/40";
+
+            if (btnValidasi) btnValidasi.className = inactiveClass;
+            if (btnRekap) btnRekap.className = inactiveClass;
+
+            if (tabName === 'validasi') {
+                if (tabValidasi) tabValidasi.classList.remove('hidden');
+                if (btnValidasi) btnValidasi.className = activeClass;
+            } else if (tabName === 'rekap') {
+                if (tabRekap) tabRekap.classList.remove('hidden');
+                if (btnRekap) btnRekap.className = activeClass;
+            }
+        }
+
+        // UTILITIES
+        function showLoading(show) {
+            const spinner = document.getElementById('loading-spinner');
+            if (show) spinner.classList.remove('hidden');
+            else spinner.classList.add('hidden');
+        }
+
+        function showNotification(msg, type = "info") {
+            const toast = document.getElementById('toast-notification');
+            const toastMsg = document.getElementById('toast-message');
+            
+            toastMsg.textContent = msg;
+            
+            if (type === "success") {
+                toast.className = "fixed bottom-5 right-5 z-50 bg-emerald-800 text-white px-4 py-3 rounded-xl shadow-xl border border-emerald-600 flex items-center space-x-3";
+            } else if (type === "error") {
+                toast.className = "fixed bottom-5 right-5 z-50 bg-rose-800 text-white px-4 py-3 rounded-xl shadow-xl border border-rose-600 flex items-center space-x-3";
+            } else {
+                toast.className = "fixed bottom-5 right-5 z-50 bg-slate-800 text-white px-4 py-3 rounded-xl shadow-xl border border-slate-600 flex items-center space-x-3";
+            }
+
+            toast.classList.remove('hidden');
+            setTimeout(() => {
+                toast.classList.add('hidden');
+            }, 4000);
+        }
+    </script>
+</body>
+</html>
