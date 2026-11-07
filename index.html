@@ -406,7 +406,11 @@
 
             showLoading(true);
             try {
-                const response = await fetch(`${state.gasUrl}?action=getLembaga`);
+                const response = await fetch(`${state.gasUrl}?action=getLembaga`, {
+                    method: 'GET',
+                    redirect: 'follow'
+                });
+                
                 if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                 
                 const result = await parseJsonResponse(response);
@@ -439,21 +443,43 @@
             renderRekapTable();
         }
 
+        function switchTab(tabName) {
+            const btnValidasi = document.getElementById('nav-tab-validasi');
+            const btnRekap = document.getElementById('nav-tab-rekap');
+            const contentValidasi = document.getElementById('tab-content-validasi');
+            const contentRekap = document.getElementById('tab-content-rekap');
+
+            if (tabName === 'validasi') {
+                contentValidasi.classList.remove('hidden');
+                contentRekap.classList.add('hidden');
+                btnValidasi.className = "px-4 py-2 font-semibold text-sm text-white bg-emerald-600 rounded-lg transition flex items-center space-x-2 shadow-lg shadow-emerald-900/30";
+                btnRekap.className = "px-4 py-2 font-medium text-sm text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-lg transition flex items-center space-x-2";
+            } else {
+                contentValidasi.classList.add('hidden');
+                contentRekap.classList.remove('hidden');
+                btnRekap.className = "px-4 py-2 font-semibold text-sm text-white bg-emerald-600 rounded-lg transition flex items-center space-x-2 shadow-lg shadow-emerald-900/30";
+                btnValidasi.className = "px-4 py-2 font-medium text-sm text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-lg transition flex items-center space-x-2";
+            }
+        }
+
         function filterByJenjang(jenjang) {
             state.filterJenjang = jenjang;
-            
-            // Highlight Tab Active Dark Theme
-            ["ALL", "TKQ", "PAUDQ", "TPQ"].forEach(j => {
-                const btn = document.getElementById(`tab-${j.toLowerCase()}`);
+            ['all', 'tkq', 'paudq', 'tpq'].forEach(t => {
+                const btn = document.getElementById(`tab-${t}`);
                 if (btn) {
-                    if (j === jenjang) {
-                        btn.className = "px-3 py-1.5 bg-emerald-600 text-white rounded-lg shadow-sm transition";
+                    if (t.toUpperCase() === jenjang) {
+                        btn.className = "px-3 py-1.5 bg-emerald-600 text-white rounded-lg shadow-sm";
                     } else {
-                        btn.className = "px-3 py-1.5 text-slate-300 hover:text-emerald-400 rounded-lg transition";
+                        btn.className = "px-3 py-1.5 text-slate-300 hover:text-emerald-400 rounded-lg";
                     }
                 }
             });
+            renderSelectLembaga();
+        }
 
+        function handleSearchInput() {
+            const searchInput = document.getElementById('search-lembaga');
+            state.searchQuery = searchInput ? searchInput.value.toLowerCase() : "";
             renderSelectLembaga();
         }
 
@@ -461,187 +487,137 @@
             const select = document.getElementById('select-lembaga');
             if (!select) return;
 
-            const searchInput = document.getElementById('search-lembaga');
-            const searchVal = searchInput ? searchInput.value.toLowerCase() : "";
-            select.innerHTML = '<option value="">-- Pilih Nama Lembaga / TPQ / TKQ / PAUDQ --</option>';
-
             const filtered = state.dataLembaga.filter(item => {
                 const matchJenjang = state.filterJenjang === "ALL" || item.jenjang === state.filterJenjang;
-                const matchSearch = item.nama.toLowerCase().includes(searchVal) || 
-                                    item.nspq.toLowerCase().includes(searchVal) ||
-                                    item.id.toLowerCase().includes(searchVal);
-                return matchJenjang && matchSearch;
+                const matchQuery = !state.searchQuery || 
+                    item.nama.toLowerCase().includes(state.searchQuery) || 
+                    item.nspq.toLowerCase().includes(state.searchQuery);
+                return matchJenjang && matchQuery;
             });
 
+            select.innerHTML = '<option value="" class="bg-slate-900 text-slate-400">-- Pilih Nama Lembaga --</option>';
             filtered.forEach(item => {
-                const opt = document.createElement('option');
-                opt.value = item.id;
-                const statusBadge = item.status === 'VALID' ? '✅' : '⏳';
-                opt.textContent = `${statusBadge} [${item.jenjang}] ${item.nama} (${item.nspq})`;
-                select.appendChild(opt);
+                const statusBadge = item.status.includes("VALID") ? "✅" : "⏳";
+                select.innerHTML += `<option value="${item.id}" class="bg-slate-900 text-slate-100">${statusBadge} [${item.jenjang}] ${item.nama}</option>`;
             });
-        }
 
-        function handleSearchInput() {
-            renderSelectLembaga();
+            if (state.selectedId) {
+                select.value = state.selectedId;
+            }
         }
 
         function loadLembagaDetail() {
             const select = document.getElementById('select-lembaga');
-            const id = select.value;
-            state.selectedId = id;
+            const card = document.getElementById('detail-lembaga-card');
+            if (!select || !card) return;
 
-            const detailCard = document.getElementById('detail-lembaga-card');
+            const selectedId = select.value;
+            state.selectedId = selectedId;
 
-            if (!id) {
-                detailCard.classList.add('hidden');
+            if (!selectedId) {
+                card.classList.add('hidden');
                 return;
             }
 
-            const item = state.dataLembaga.find(l => l.id === id);
+            const item = state.dataLembaga.find(l => l.id === selectedId);
             if (!item) return;
 
-            // Populate header detail
             document.getElementById('det-jenjang').textContent = item.jenjang;
             document.getElementById('det-nspq').textContent = item.nspq;
             document.getElementById('det-nama').textContent = item.nama;
-            document.getElementById('det-kepala').textContent = item.kepala || '-';
+            document.getElementById('det-kepala').textContent = item.kepala;
 
-            // Status Badge Dark Theme
-            const badgeEl = document.getElementById('det-status-badge');
-            if (item.status && item.status.startsWith("VALID")) {
-                badgeEl.className = "px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-bold rounded-full border border-emerald-500/40 flex items-center space-x-1 shadow-sm";
-                badgeEl.innerHTML = '<i class="fa-solid fa-circle-check"></i><span>Telah Divalidasi</span>';
+            // Status Badge
+            const badgeContainer = document.getElementById('det-status-badge');
+            if (item.status.includes("VALID")) {
+                badgeContainer.innerHTML = `<span class="px-3 py-1.5 bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold text-xs rounded-xl flex items-center space-x-1.5"><i class="fa-solid fa-circle-check text-emerald-400"></i><span>VALIDATED (${item.lastUpdate || 'Telah Divalidasi'})</span></span>`;
             } else {
-                badgeEl.className = "px-3 py-1 bg-amber-500/20 text-amber-400 text-xs font-bold rounded-full border border-amber-500/40 flex items-center space-x-1 shadow-sm";
-                badgeEl.innerHTML = '<i class="fa-solid fa-clock"></i><span>Belum Divalidasi</span>';
+                badgeContainer.innerHTML = `<span class="px-3 py-1.5 bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold text-xs rounded-xl flex items-center space-x-1.5"><i class="fa-solid fa-clock text-amber-400"></i><span>BELUM VALIDASI</span></span>`;
             }
 
-            // Render Rincian Pesanan Soal
-            const soalContainer = document.getElementById('det-soal-list');
-            soalContainer.innerHTML = '';
-            state.revisiSoal = {};
-            if (item.soal) {
-                for (const [kategori, jumlah] of Object.entries(item.soal)) {
-                    state.revisiSoal[kategori] = jumlah;
-                    soalContainer.innerHTML += `
-                        <div class="p-3 bg-slate-900 border border-slate-700/70 rounded-lg flex justify-between items-center">
-                            <span class="text-xs font-medium text-slate-300">${kategori}</span>
-                            <span class="text-sm font-bold text-emerald-400">${jumlah} naskah</span>
-                        </div>
-                    `;
-                }
+            // Render Rincian Soal
+            const soalList = document.getElementById('det-soal-list');
+            soalList.innerHTML = "";
+            state.revisiSoal = { ...item.soal };
+            for (let [kategori, jumlah] of Object.entries(item.soal)) {
+                soalList.innerHTML += `
+                    <div class="flex justify-between items-center text-xs text-slate-300 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
+                        <span class="font-medium">${kategori}</span>
+                        <span class="font-bold text-emerald-400 text-sm">${jumlah} Eksemplar</span>
+                    </div>`;
             }
 
-            // Render Rincian Pesanan Rapor
-            const raporContainer = document.getElementById('det-rapor-list');
-            raporContainer.innerHTML = '';
-            state.revisiRapor = {};
-            if (item.rapor) {
-                for (const [kategori, jumlah] of Object.entries(item.rapor)) {
-                    state.revisiRapor[kategori] = jumlah;
-                    raporContainer.innerHTML += `
-                        <div class="p-3 bg-slate-900 border border-slate-700/70 rounded-lg flex justify-between items-center">
-                            <span class="text-xs font-medium text-slate-300">${kategori}</span>
-                            <span class="text-sm font-bold text-blue-400">${jumlah} eksemplar</span>
-                        </div>
-                    `;
-                }
+            // Render Rincian Rapor
+            const raporList = document.getElementById('det-rapor-list');
+            raporList.innerHTML = "";
+            state.revisiRapor = { ...item.rapor };
+            for (let [kategori, jumlah] of Object.entries(item.rapor)) {
+                raporList.innerHTML += `
+                    <div class="flex justify-between items-center text-xs text-slate-300 bg-slate-950/60 p-2.5 rounded-lg border border-slate-800">
+                        <span class="font-medium">${kategori}</span>
+                        <span class="font-bold text-blue-400 text-sm">${jumlah} Buku</span>
+                    </div>`;
             }
 
-            // Prefill form
-            document.getElementById('input-nama-petugas').value = item.validator || '';
-            document.getElementById('input-wa-petugas').value = item.wa || '';
-            document.getElementById('input-catatan').value = item.catatan || '';
-
-            // Default Option Sesuai
+            // Reset inputs & radio options
+            document.getElementById('opt-sesuai').checked = true;
             setValidationType('SESUAI');
+            document.getElementById('input-nama-petugas').value = item.validator || "";
+            document.getElementById('input-wa-petugas').value = item.wa || "";
+            document.getElementById('input-catatan').value = item.catatan || "";
 
-            detailCard.classList.remove('hidden');
-            detailCard.scrollIntoView({ behavior: 'smooth' });
+            renderRevisiInputs(item);
+            card.classList.remove('hidden');
         }
 
         function setValidationType(type) {
             state.validationType = type;
-            const formRevisiContainer = document.getElementById('form-revisi-container');
-            const radioSesuai = document.getElementById('opt-sesuai');
-            const radioRevisi = document.getElementById('opt-revisi');
-
-            if (type === 'SESUAI') {
-                radioSesuai.checked = true;
-                formRevisiContainer.classList.add('hidden');
+            const container = document.getElementById('form-revisi-container');
+            if (!container) return;
+            if (type === 'REVISI') {
+                container.classList.remove('hidden');
             } else {
-                radioRevisi.checked = true;
-                formRevisiContainer.classList.remove('hidden');
-                renderRevisiInputs();
+                container.classList.add('hidden');
             }
         }
 
-        function updateRevisiVal(type, kategori, val) {
-            const num = parseInt(val, 10) || 0;
+        function renderRevisiInputs(item) {
+            const list = document.getElementById('revisi-inputs-list');
+            if (!list) return;
+            list.innerHTML = "";
+
+            // Inputs Soal
+            for (let [kategori, jumlah] of Object.entries(item.soal)) {
+                list.innerHTML += `
+                    <div class="flex items-center justify-between gap-4 bg-slate-950/80 p-2.5 rounded-lg border border-slate-800">
+                        <label class="text-xs font-semibold text-slate-200">Soal (${kategori})</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="number" min="0" value="${jumlah}" onchange="updateRevisiVal('soal', '${kategori}', this.value)" class="w-24 px-3 py-1 bg-slate-900 border border-amber-500/40 rounded text-center text-sm font-bold text-amber-300 focus:outline-none focus:ring-1 focus:ring-amber-500">
+                            <span class="text-xs text-slate-400">Eks</span>
+                        </div>
+                    </div>`;
+            }
+
+            // Inputs Rapor
+            for (let [kategori, jumlah] of Object.entries(item.rapor)) {
+                list.innerHTML += `
+                    <div class="flex items-center justify-between gap-4 bg-slate-950/80 p-2.5 rounded-lg border border-slate-800">
+                        <label class="text-xs font-semibold text-slate-200">${kategori}</label>
+                        <div class="flex items-center space-x-2">
+                            <input type="number" min="0" value="${jumlah}" onchange="updateRevisiVal('rapor', '${kategori}', this.value)" class="w-24 px-3 py-1 bg-slate-900 border border-amber-500/40 rounded text-center text-sm font-bold text-amber-300 focus:outline-none focus:ring-1 focus:ring-amber-500">
+                            <span class="text-xs text-slate-400">Buku</span>
+                        </div>
+                    </div>`;
+            }
+        }
+
+        function updateRevisiVal(type, key, val) {
+            const numVal = parseInt(val, 10) || 0;
             if (type === 'soal') {
-                state.revisiSoal[kategori] = num;
+                state.revisiSoal[key] = numVal;
             } else if (type === 'rapor') {
-                state.revisiRapor[kategori] = num;
+                state.revisiRapor[key] = numVal;
             }
-        }
-
-        function renderRevisiInputs() {
-            const item = state.dataLembaga.find(l => l.id === state.selectedId);
-            if (!item) return;
-
-            const container = document.getElementById('revisi-inputs-list');
-            container.innerHTML = '';
-
-            // Inputs Soal Dark
-            let html = '<h5 class="text-xs font-bold text-amber-300 mb-2">Perubahan Pesanan Soal:</h5>';
-            for (const [kategori, jumlah] of Object.entries(item.soal || {})) {
-                html += `
-                    <div class="flex items-center justify-between gap-4 p-2.5 bg-slate-950 border border-slate-800 rounded-lg">
-                        <label class="text-xs font-medium text-slate-300">${kategori}</label>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-xs text-slate-500">Awal: ${jumlah} &rarr;</span>
-                            <input type="number" min="0" value="${state.revisiSoal[kategori] ?? jumlah}" 
-                                onchange="updateRevisiVal('soal', '${kategori}', this.value)"
-                                class="w-20 px-2.5 py-1 bg-slate-900 border border-amber-500/50 text-amber-300 font-bold rounded text-center text-xs focus:ring-2 focus:ring-amber-500 outline-none">
-                        </div>
-                    </div>
-                `;
-            }
-
-            // Inputs Rapor Dark
-            html += '<h5 class="text-xs font-bold text-amber-300 mt-3 mb-2">Perubahan Pesanan Rapor:</h5>';
-            for (const [kategori, jumlah] of Object.entries(item.rapor || {})) {
-                html += `
-                    <div class="flex items-center justify-between gap-4 p-2.5 bg-slate-950 border border-slate-800 rounded-lg">
-                        <label class="text-xs font-medium text-slate-300">${kategori}</label>
-                        <div class="flex items-center space-x-2">
-                            <span class="text-xs text-slate-500">Awal: ${jumlah} &rarr;</span>
-                            <input type="number" min="0" value="${state.revisiRapor[kategori] ?? jumlah}" 
-                                onchange="updateRevisiVal('rapor', '${kategori}', this.value)"
-                                class="w-20 px-2.5 py-1 bg-slate-900 border border-amber-500/50 text-amber-300 font-bold rounded text-center text-xs focus:ring-2 focus:ring-amber-500 outline-none">
-                        </div>
-                    </div>
-                `;
-            }
-
-            container.innerHTML = html;
-        }
-
-        function renderSummaryCards() {
-            const totalEl = document.getElementById('stat-total-lembaga');
-            const validEl = document.getElementById('stat-sudah-validasi');
-            const belumEl = document.getElementById('stat-belum-validasi');
-
-            if (!totalEl || !validEl || !belumEl) return;
-
-            const total = state.dataLembaga.length;
-            const valid = state.dataLembaga.filter(l => l.status && l.status.startsWith("VALID")).length;
-            const belum = total - valid;
-
-            totalEl.textContent = total;
-            validEl.textContent = valid;
-            belumEl.textContent = belum;
         }
 
         async function submitValidasi() {
@@ -655,175 +631,138 @@
             const catatan = document.getElementById('input-catatan').value.trim();
 
             if (!namaPetugas || !waPetugas) {
-                showNotification("Nama penanggung jawab & No. WhatsApp wajib diisi!", "error");
+                showNotification("Mohon lengkapi Nama Penanggung Jawab dan No. WhatsApp!", "error");
                 return;
             }
 
-            const isRevisi = state.validationType === 'REVISI';
-            const statusStr = isRevisi ? "VALID (ADA REVISI)" : "VALID (SESUAI)";
-
             const payload = {
                 id: state.selectedId,
-                status_validasi: statusStr,
+                status_validasi: state.validationType === 'SESUAI' ? 'VALID (SESUAI)' : 'VALID (ADA REVISI)',
                 nama_petugas: namaPetugas,
                 wa_petugas: waPetugas,
                 catatan: catatan,
-                revisi_soal: isRevisi ? state.revisiSoal : null,
-                revisi_rapor: isRevisi ? state.revisiRapor : null
+                revisi_soal: state.validationType === 'REVISI' ? state.revisiSoal : null,
+                revisi_rapor: state.validationType === 'REVISI' ? state.revisiRapor : null
             };
 
             showLoading(true);
 
-            // Jika ada URL GAS backend aktif
-            if (state.gasUrl && !state.gasUrl.includes("YOUR_SCRIPT_ID")) {
-                try {
-                    // Mengirim POST request ke Web App GAS
+            try {
+                if (state.gasUrl && !state.gasUrl.includes("YOUR_SCRIPT_ID")) {
                     await fetch(state.gasUrl, {
-                        method: "POST",
-                        mode: "no-cors", // Penanganan CORS Redirect khas Google Apps Script
-                        headers: { "Content-Type": "text/plain" },
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify(payload)
                     });
 
-                    showNotification("Validasi berhasil dikirim! Memperbarui data...", "success");
-                    
-                    // Beri jeda 1.5 detik lalu refresh data dari Spreadsheet
-                    setTimeout(async () => {
-                        await fetchDataFromGAS();
-                    }, 1500);
+                    // Update data lokal
+                    const item = state.dataLembaga.find(l => l.id === state.selectedId);
+                    if (item) {
+                        item.status = payload.status_validasi;
+                        item.validator = payload.nama_petugas;
+                        item.wa = payload.wa_petugas;
+                        item.catatan = payload.catatan;
+                        item.lastUpdate = "Baru Saja";
+                        if (payload.revisi_soal) item.soal = { ...payload.revisi_soal };
+                        if (payload.revisi_rapor) item.rapor = { ...payload.revisi_rapor };
+                    }
 
-                } catch (err) {
-                    showNotification(`Gagal koneksi server: ${err.message}. Memperbarui secara lokal.`, "error");
-                    updateLocalData(payload);
-                    showLoading(false);
+                    showNotification("Validasi berhasil dikirim dan tersimpan!", "success");
+                    loadLembagaDetail();
+                    renderSummaryCards();
+                    renderRekapTable();
+                } else {
+                    // Update Local Mock Data Mode
+                    const item = state.dataLembaga.find(l => l.id === state.selectedId);
+                    if (item) {
+                        item.status = payload.status_validasi;
+                        item.validator = payload.nama_petugas;
+                        item.wa = payload.wa_petugas;
+                        item.catatan = payload.catatan;
+                        item.lastUpdate = "Baru Saja (Demo Mode)";
+                        if (payload.revisi_soal) item.soal = { ...payload.revisi_soal };
+                        if (payload.revisi_rapor) item.rapor = { ...payload.revisi_rapor };
+                    }
+                    showNotification("Validasi berhasil disimpan (Mode Simulasi Demo)!", "success");
+                    loadLembagaDetail();
+                    renderSummaryCards();
+                    renderRekapTable();
                 }
-            } else {
-                // Update Local Demo Data
-                setTimeout(() => {
-                    updateLocalData(payload);
-                    showLoading(false);
-                    showNotification("Validasi berhasil disimpan secara lokal (Mode Demo)!", "success");
-                }, 500);
+            } catch (err) {
+                showNotification("Gagal mengirim data: " + err.message, "error");
+            } finally {
+                showLoading(false);
             }
         }
 
-        function updateLocalData(payload) {
-            const idx = state.dataLembaga.findIndex(l => l.id === payload.id);
-            if (idx !== -1) {
-                state.dataLembaga[idx].status = payload.status_validasi;
-                state.dataLembaga[idx].validator = payload.nama_petugas;
-                state.dataLembaga[idx].wa = payload.wa_petugas;
-                state.dataLembaga[idx].catatan = payload.catatan;
+        function renderSummaryCards() {
+            const elTotal = document.getElementById('stat-total-lembaga');
+            const elSudah = document.getElementById('stat-sudah-validasi');
+            const elBelum = document.getElementById('stat-belum-validasi');
 
-                if (payload.revisi_soal) {
-                    state.dataLembaga[idx].soal = { ...payload.revisi_soal };
-                }
-                if (payload.revisi_rapor) {
-                    state.dataLembaga[idx].rapor = { ...payload.revisi_rapor };
-                }
+            if (!elTotal || !elSudah || !elBelum) return;
 
-                renderSelectLembaga();
-                renderSummaryCards();
-                renderRekapTable();
-                loadLembagaDetail();
-            }
+            const total = state.dataLembaga.length;
+            const sudah = state.dataLembaga.filter(i => i.status.includes("VALID")).length;
+            const belum = total - sudah;
+
+            elTotal.textContent = total;
+            elSudah.textContent = sudah;
+            elBelum.textContent = belum;
         }
 
-        // RENDER REKAP TABEL DARK
         function renderRekapTable() {
             const tbody = document.getElementById('rekap-table-body');
             if (!tbody) return;
 
-            tbody.innerHTML = '';
+            tbody.innerHTML = "";
+            state.dataLembaga.forEach((item, index) => {
+                let soalStr = Object.entries(item.soal).map(([k, v]) => `${k}: ${v}`).join(", ");
+                let raporStr = Object.entries(item.rapor).map(([k, v]) => `${k}: ${v}`).join(", ");
+                
+                let badgeClass = item.status.includes("VALID") 
+                    ? "bg-emerald-500/20 text-emerald-300 border-emerald-500/30" 
+                    : "bg-amber-500/20 text-amber-300 border-amber-500/30";
 
-            state.dataLembaga.forEach((l, idx) => {
-                const tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-800/50 transition border-b border-slate-700/50";
-
-                let soalText = [];
-                for (const [k, v] of Object.entries(l.soal)) {
-                    soalText.push(`${k}: <b class="text-emerald-400">${v}</b>`);
-                }
-
-                let raporText = [];
-                for (const [k, v] of Object.entries(l.rapor)) {
-                    raporText.push(`${k}: <b class="text-blue-400">${v}</b>`);
-                }
-
-                const isStatusValid = l.status.startsWith("VALID");
-                const badgeClass = isStatusValid
-                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40'
-                    : 'bg-amber-500/20 text-amber-400 border-amber-500/40';
-                const statusLabel = isStatusValid ? 'VALID' : 'BELUM';
-
-                tr.innerHTML = `
-                    <td class="px-4 py-3 font-mono text-xs text-slate-400">${idx + 1}</td>
-                    <td class="px-4 py-3 font-semibold text-slate-100 text-xs">
-                        ${l.nama}
-                        <div class="text-[10px] text-slate-400 font-normal">NSPQ: ${l.nspq}</div>
-                    </td>
-                    <td class="px-4 py-3 text-xs"><span class="px-2 py-0.5 bg-slate-900 text-emerald-400 border border-slate-700 rounded font-bold">${l.jenjang}</span></td>
-                    <td class="px-4 py-3 text-xs text-slate-300">${soalText.join(' | ')}</td>
-                    <td class="px-4 py-3 text-xs text-slate-300">${raporText.join(' | ')}</td>
-                    <td class="px-4 py-3 text-xs">
-                        <span class="px-2.5 py-1 text-[11px] font-bold rounded-full border ${badgeClass}">
-                            ${statusLabel}
-                        </span>
-                    </td>
-                    <td class="px-4 py-3 text-xs text-slate-400">${l.validator ? l.validator : '-'}</td>
-                `;
-                tbody.appendChild(tr);
+                tbody.innerHTML += `
+                    <tr class="hover:bg-slate-800/50 transition">
+                        <td class="px-4 py-3 border-b border-slate-800 font-mono text-xs text-slate-400">${index + 1}</td>
+                        <td class="px-4 py-3 border-b border-slate-800">
+                            <div class="font-bold text-slate-100">${item.nama}</div>
+                            <div class="text-xs text-slate-400 font-mono">NSPQ: ${item.nspq}</div>
+                        </td>
+                        <td class="px-4 py-3 border-b border-slate-800">
+                            <span class="px-2 py-0.5 bg-slate-900 border border-slate-700 font-bold text-xs rounded text-emerald-400">${item.jenjang}</span>
+                        </td>
+                        <td class="px-4 py-3 border-b border-slate-800 text-xs text-slate-300">${soalStr}</td>
+                        <td class="px-4 py-3 border-b border-slate-800 text-xs text-slate-300">${raporStr}</td>
+                        <td class="px-4 py-3 border-b border-slate-800">
+                            <span class="px-2.5 py-1 border text-xs font-bold rounded-lg ${badgeClass}">${item.status}</span>
+                        </td>
+                        <td class="px-4 py-3 border-b border-slate-800 text-xs text-slate-300">
+                            ${item.validator ? `<div>${item.validator}</div><div class="text-[11px] text-slate-400 font-mono">${item.wa}</div>` : '<span class="text-slate-500">-</span>'}
+                        </td>
+                    </tr>`;
             });
         }
 
-        function switchTab(tabName) {
-            const tabValidasi = document.getElementById('tab-content-validasi');
-            const tabRekap = document.getElementById('tab-content-rekap');
-
-            const btnValidasi = document.getElementById('nav-tab-validasi');
-            const btnRekap = document.getElementById('nav-tab-rekap');
-
-            // Hide all
-            [tabValidasi, tabRekap].forEach(t => t?.classList.add('hidden'));
-            
-            // Reset nav styles for Dark Mode
-            const inactiveClass = "px-4 py-2 font-medium text-sm text-slate-300 hover:text-white hover:bg-slate-800/60 rounded-lg transition flex items-center space-x-2";
-            const activeClass = "px-4 py-2 font-semibold text-sm text-white bg-emerald-600 rounded-lg transition flex items-center space-x-2 shadow-lg shadow-emerald-950/40";
-
-            if (btnValidasi) btnValidasi.className = inactiveClass;
-            if (btnRekap) btnRekap.className = inactiveClass;
-
-            if (tabName === 'validasi') {
-                if (tabValidasi) tabValidasi.classList.remove('hidden');
-                if (btnValidasi) btnValidasi.className = activeClass;
-            } else if (tabName === 'rekap') {
-                if (tabRekap) tabRekap.classList.remove('hidden');
-                if (btnRekap) btnRekap.className = activeClass;
-            }
-        }
-
-        // UTILITIES
         function showLoading(show) {
             const spinner = document.getElementById('loading-spinner');
-            if (show) spinner.classList.remove('hidden');
-            else spinner.classList.add('hidden');
+            if (spinner) {
+                if (show) spinner.classList.remove('hidden');
+                else spinner.classList.add('hidden');
+            }
         }
 
         function showNotification(msg, type = "info") {
             const toast = document.getElementById('toast-notification');
             const toastMsg = document.getElementById('toast-message');
-            
-            toastMsg.textContent = msg;
-            
-            if (type === "success") {
-                toast.className = "fixed bottom-5 right-5 z-50 bg-emerald-800 text-white px-4 py-3 rounded-xl shadow-xl border border-emerald-600 flex items-center space-x-3";
-            } else if (type === "error") {
-                toast.className = "fixed bottom-5 right-5 z-50 bg-rose-800 text-white px-4 py-3 rounded-xl shadow-xl border border-rose-600 flex items-center space-x-3";
-            } else {
-                toast.className = "fixed bottom-5 right-5 z-50 bg-slate-800 text-white px-4 py-3 rounded-xl shadow-xl border border-slate-600 flex items-center space-x-3";
-            }
+            if (!toast || !toastMsg) return;
 
+            toastMsg.textContent = msg;
             toast.classList.remove('hidden');
+
             setTimeout(() => {
                 toast.classList.add('hidden');
             }, 4000);
